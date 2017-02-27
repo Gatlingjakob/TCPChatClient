@@ -21,7 +21,25 @@ public class TCPChatClient extends Application implements Runnable {
     private static DataInputStream is = null;
 
     private static BufferedReader inputLine = null;
+
     private static boolean closed = false;
+
+    private static String username;
+
+
+
+    String JOIN = "JOIN {" + username + "}, {" +
+            clientSocket.getInetAddress() + "}:{" + clientSocket.getPort()+ "}";
+    byte[] JOINBytes = JOIN.getBytes();
+
+    String DATA = "DATA {" + "[" + username + "]" + "}: {" + inputLine.toString() + "}";
+    byte[] DATABytes = DATA.getBytes();
+
+    String ALVE = "[" + username + "]" + "is alive";
+    byte[] ALVEBytes = ALVE.getBytes();
+
+    String QUIT = "QUIT" + "[" + username + "]";
+    byte[] QUITBytes = QUIT.getBytes();
 
     @Override
     public void start(Stage primaryStage) throws Exception{
@@ -48,19 +66,19 @@ public class TCPChatClient extends Application implements Runnable {
             inputLine = new BufferedReader(new InputStreamReader(System.in));
 
 
-            String stuff = inputLine.toString();
 
-            String something = "JOIN {" + stuff + "}, {" +
-                             clientSocket.getInetAddress() + "}:{" + clientSocket.getPort()+ "}"
-                    + (new BufferedReader(new InputStreamReader(System.in))).toString();
-            byte[] huj = something.getBytes();
+
 
 
 
            os = new PrintStream(clientSocket.getOutputStream());
             is = new DataInputStream(clientSocket.getInputStream());
-           // os.append(something);
-            os.write(huj);
+
+            //os.write(JOINBytes);
+            //os.append(JOINBytes);
+
+
+
         } catch (UnknownHostException e) {
             System.err.println("Don't know about host " + host);
         } catch (IOException e) {
@@ -79,6 +97,8 @@ public class TCPChatClient extends Application implements Runnable {
                 new Thread(new TCPChatClient()).start();
                 while (!closed) {
                     os.println(inputLine.readLine().trim());
+
+
                 }
         /*
          * Close the output stream, close the input stream, close the socket.
@@ -104,7 +124,15 @@ public class TCPChatClient extends Application implements Runnable {
      */
         String responseLine;
         try {
+
             while ((responseLine = is.readLine()) != null) {
+
+
+                if(responseLine.startsWith("Hello ")){
+                    //Iterér igennem response line for at få brugernavn til fremtidig brug i de andre PRAHTEKAHLS
+                    os.write(JOINBytes);
+                }
+
                 System.out.println(responseLine);
                 if (responseLine.contains("Server says Bye")) {
                     break;
