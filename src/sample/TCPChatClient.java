@@ -10,6 +10,7 @@ import javafx.stage.Stage;
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 
 public class TCPChatClient extends Application implements Runnable {
 
@@ -24,7 +25,9 @@ public class TCPChatClient extends Application implements Runnable {
 
     private static boolean closed = false;
 
-    private static String username;
+    private static String username = "";
+
+    private static ArrayList<String> scannedName = new ArrayList<String>();
 
 
 
@@ -35,8 +38,8 @@ public class TCPChatClient extends Application implements Runnable {
     String DATA = "DATA {" + "[" + username + "]" + "}: {" + inputLine.toString() + "}";
     byte[] DATABytes = DATA.getBytes();
 
-    String ALVE = "[" + username + "]" + "is alive";
-    byte[] ALVEBytes = ALVE.getBytes();
+    String ALIVE = "ALIVE[" + username + "]" + "is alive";
+    byte[] ALVEBytes = ALIVE.getBytes();
 
     String QUIT = "QUIT" + "[" + username + "]";
     byte[] QUITBytes = QUIT.getBytes();
@@ -67,11 +70,7 @@ public class TCPChatClient extends Application implements Runnable {
 
 
 
-
-
-
-
-           os = new PrintStream(clientSocket.getOutputStream());
+            os = new PrintStream(clientSocket.getOutputStream());
             is = new DataInputStream(clientSocket.getInputStream());
 
             //os.write(JOINBytes);
@@ -97,8 +96,6 @@ public class TCPChatClient extends Application implements Runnable {
                 new Thread(new TCPChatClient()).start();
                 while (!closed) {
                     os.println(inputLine.readLine().trim());
-
-
                 }
         /*
          * Close the output stream, close the input stream, close the socket.
@@ -122,25 +119,38 @@ public class TCPChatClient extends Application implements Runnable {
      * Keep on reading from the socket till we receive "Bye" from the
      * server. Once we received that then we want to break.
      */
-        String responseLine;
+        String responseLine = "";
+
+
+
         try {
 
             while ((responseLine = is.readLine()) != null) {
 
 
+
                 if(responseLine.startsWith("Hello ")){
                     //Iterér igennem response line for at få brugernavn til fremtidig brug i de andre PRAHTEKAHLS
                     os.write(JOINBytes);
+                    //username = inputLine.toString();
+                    //username = responseLine.toString();
+
                 }
 
+
+
                 System.out.println(responseLine);
-                if (responseLine.contains("Server says Bye")) {
+                if (responseLine.contains("Server says Bye")) { //Det er ikke sikkert at denne responseline kommer
+                    //på det rigtige tidspunkt
+                    os.write(QUITBytes);
                     break;
                 }
+
             }
             closed = true;
         } catch (IOException e) {
             System.err.println("IOException:  " + e);
         }
+
     }
 }
