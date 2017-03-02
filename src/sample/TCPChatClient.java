@@ -192,10 +192,12 @@ public class TCPChatClient extends Application {
 
                try {
                    os.write(JOINBytes);
-
                } catch (IOException e) {
                    e.printStackTrace();
                }
+               os.flush();
+
+
 
 
             /*     // If username is not already taken
